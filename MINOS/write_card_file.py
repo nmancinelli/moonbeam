@@ -7,7 +7,8 @@ def main():
 	fout = open(filename + '.txt' , 'w')
 
 	names = ["Radius","Density","Vp","Vs","_","__"]
-	df = pd.read_csv(filename + '.out', delim_whitespace = True, skiprows = 5, names = names)
+	df = pd.read_csv(filename + '.out',
+		delim_whitespace = True, names = names)
 
 	df.Radius = df.Radius * 1000.
 	df.Density = df.Density * 1000.
@@ -18,12 +19,26 @@ def main():
 	noc = len(dffld)
 	
 	#because of added layer
-	if noc > 0:
-		noc=noc+1
+	#if noc > 0:
+	#	noc=noc+1
+	
+	nic = 0
+	noc = 0
+	
+	if df.Vs.min() > 0.0: #No molten core
+		pass
+	else:
+		radius_cmb = df.query('Vs == 0').Radius.max()
+		noc = df.query( 'Radius == %f' % radius_cmb).index.max() + 1
+		
+		if df.Vs.tolist()[0] != 0.0:
+			radius_icb = df.query('Vs == 0').Radius.min()
+			nic = df.query('Radius == %f' % radius_icb).index.min() + 1
+	
 	
 	fout.write('#\n')
 	fout.write('0 0 1 1\n')
-	fout.write('%d %d %d\n' % (len(df)+1, 0, noc) )
+	fout.write('%d %d %d\n' % (len(df), nic, noc) )
 	
 	for i, row in df.iterrows():
 		
